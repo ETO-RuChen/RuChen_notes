@@ -1,0 +1,56 @@
+# .gitignore
+# others
+node_modules
+.hugo_build.lock
+hugo_stats.json
+.hugo_build.json
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Hugo
+public
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Hugo
+/public/
+/resources/_gen/
+/resources/
+
+
+# 依赖文件
+node_modules/
+
+# macOS 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows 系统文件  
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux 临时文件
+*~
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+.obsidian/
+# 环境变量
+.env
+.env.local

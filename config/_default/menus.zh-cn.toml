@@ -1,0 +1,137 @@
+# -- Main Menu --
+# The main menu is displayed in the header at the top of the page.
+# Acceptable parameters are name, pageRef, page, url, title, weight.
+# 
+# The simplest menu configuration is to provide:
+#   name = The name to be displayed for this menu link
+#   pageRef = The identifier of the page or section to link to
+#
+# By default the menu is ordered alphabetically. This can be
+# overridden by providing a weight value. The menu will then be
+# ordered by weight from lowest to highest.
+
+# 主菜单 - 嵌入式笔记 (作为下拉菜单的父项)
+[[main]]
+  name = "嵌入式学习📖"
+  identifier = "embedded"
+  url = "/embedded/"
+  weight = 10
+
+# 嵌入式下的子菜单
+[[main]]
+  identifier = "embedded-c"
+  name = "C语言专题"
+  url = "/embedded/c-language/"  # 指向子分区
+  weight = 11
+  parent = "embedded"           # 关键！指定父菜单的 identifier
+
+[[main]]
+  identifier = "embedded-stm32"
+  name = "STM32专题"
+  url = "/embedded/stm32/"
+  weight = 12
+  parent = "embedded"
+
+[[main]]
+  identifier = "data_structure"
+  name = "数据结构专题"
+  url = "/embedded/data_structure/"
+  weight = 13
+  parent = "embedded"
+
+# 主菜单 - 项目日志 (另一个下拉菜单)
+[[main]]
+  name = "项目日志📒"
+  identifier = "projects"
+  url = "/projects/"
+  weight = 10
+
+# 捣鼓记 (如果没有子项，就保持原样)
+[[main]]
+  name = "捣鼓日常🛠️"
+  identifier = "tinkering"
+  url = "/tinkering/"
+  weight = 10
+
+# hugo 学习笔记
+[[main]]
+  name = "Hugo博客📝"
+  identifier = "hugo"
+  url = "/tinkering/hugo/"
+  weight = 15
+  parent = "tinkering"
+
+[[main]]
+  name = "技术随笔🗒️"
+  identifier = "Snippets"
+  url = "/Snippets/"
+  weight = 10
+
+[[main]]
+  name = "标签🏷️"
+  url = "/tags/"
+  weight = 30
+
+#友链相关的菜单项
+[[main]]
+  name = "友链🔗"
+  identifier = "friends"
+  weight = 20
+
+[[main]]
+  name = "Haley's Blog"
+  identifier = "friend-haley"
+  parent = "friends"
+  url = "https://145757.xyz/"
+  weight = 20
+
+[[main]]
+  name = "Realms' Blog"
+  identifier = "friend-realms"
+  parent = "friends"
+  url = "https://blog.arealms.org/"
+  weight = 20
+
+  [[main]]
+  name = "Uwidjw's Blog"
+  identifier = "friend-uwidjw"
+  parent = "friends"
+  url = "https://blog.uwidjw.de/"
+  weight = 20
+
+# [[subnavigation]]
+#  name = "An interesting topic"
+#  pageRef = "tags/interesting-topic"
+#  weight = 10
+
+# [[subnavigation]]
+#  name = "My Awesome Category"
+#  pre = "github"
+#  pageRef = "categories/awesome"
+#  weight = 20
+
+# [[main]]
+#  name = "Categories"
+#  pageRef = "categories"
+#  weight = 20
+
+# [[main]]
+#  name = "Tags"
+#  pageRef = "tags"
+#  weight = 30
+
+
+# -- Footer Menu --
+# The footer menu is displayed at the bottom of the page, just before
+# the copyright notice. Configure as per the main menu above.
+
+
+# [[footer]]
+#   name = "Tags"
+#   pageRef = "tags"
+#   weight = 10
+
+# [[footer]]
+#   name = "Categories"
+#   pageRef = "categories"
+#   weight = 20
