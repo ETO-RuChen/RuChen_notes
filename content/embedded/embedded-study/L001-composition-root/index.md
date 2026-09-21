@@ -1,19 +1,24 @@
 +++
-title = "从分层图到可替换对象：用组合根完成依赖注入"
+title = "进阶专题：从分层图到可替换对象——用组合根完成依赖注入"
 date = "2026-09-18T00:38:58+08:00"
-lastmod = "2026-09-18T00:38:58+08:00"
-summary = "通过静态 Host Fake、ops/ctx 接口和唯一 BSP 组合根，建立从对象声明到 App 调用的最小可替换组装闭环。"
+lastmod = "2026-09-21T19:12:25+08:00"
+summary = "进阶专题：通过静态 Host Fake、ops/ctx 接口和唯一 BSP 组合根，建立从对象声明到 App 调用的可替换组装闭环。"
 categories = ["嵌入式"]
-series = ["EmbeddedStudy"]
+series = ["EmbeddedStudy 进阶专题"]
 series_order = 1
-tags = ["composition-root", "dependency-injection", "ops-and-ctx", "host-fake", "device-framework"]
+tags = ["进阶", "composition-root", "dependency-injection", "ops-and-ctx", "host-fake", "device-framework"]
 source_ids = ["ST-UM1725", "ST-UM1905", "GNU-C-REFERENCE"]
 generated_with_ai = true
 hardware_verified = false
-lesson_id = "L001"
+lesson_id = "ADV001"
+original_lesson_id = "L001"
+difficulty = "advanced"
+mainline = false
 +++
 
 <!-- generated-by: EmbeddedStudy -->
+> 进阶专题：本文不属于当前初学者主线。建议完成嵌入式 C、指针与对象生命周期、编译链接和基础驱动接口课程后再阅读。
+
 > 本文由 AI 辅助生成并经自动审查；尚未完成真实硬件验证。涉及具体芯片、时序和电气行为时，请以文末第一方资料和实际测试为准。
 
 # 从分层图到可替换对象：用组合根完成依赖注入
