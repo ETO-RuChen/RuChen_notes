@@ -1,0 +1,31 @@
+[site]
+content_dir = "content/embedded/embedded-study"
+front_matter = "yaml"
+filename_style = "date-slug"
+default_draft = false
+default_tags = ["嵌入式", "EmbeddedStudy"]
+default_categories = ["嵌入式"]
+default_series = ["EmbeddedStudy"]
+default_featureimage = ""
+default_summary = ""
+include_lastmod = true
+
+[git]
+remote = "origin"
+branch = "main"
+require_remote = true
+cloud_wins_on_divergence = true
+repository_is_dedicated = false
+auto_commit = true
+auto_push = true
+
+[hugo]
+enabled = true
+command = ["hugo", "--gc", "--minify"]
+
+[publish]
+enabled = false
+command = []
+
+[generator]
+command = ["codex", "exec", "--ephemeral", "--color", "never", "--sandbox", "workspace-write", "--approve-for-me", "--cd", "{site_root}", "{prompt}"]
