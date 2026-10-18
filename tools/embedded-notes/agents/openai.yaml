@@ -1,0 +1,7 @@
+interface:
+  display_name: "Embedded Notes"
+  short_description: "Generate and publish Hugo embedded notes"
+  default_prompt: "Use $embedded-notes to turn the requested embedded-systems context into Hugo Markdown."
+
+policy:
+  allow_implicit_invocation: true
