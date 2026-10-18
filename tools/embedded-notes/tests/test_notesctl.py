@@ -78,6 +78,14 @@ def make_request(root: Path, mode: str = "single", count: int = 1) -> Path:
 
 
 class NotesctlTests(unittest.TestCase):
+    def test_run_command_decodes_utf8_independently_of_windows_locale(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            code = "import sys; sys.stdout.buffer.write('中文路径'.encode('utf-8'))"
+
+            result = notesctl.run_command([sys.executable, "-c", code], Path(directory))
+
+            self.assertEqual(result.stdout, "中文路径")
+
     def test_status_paths_preserves_first_character_of_tracked_modification(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             site = Path(directory) / "site"

@@ -129,6 +129,8 @@ def run_command(
             command,
             cwd=str(cwd),
             text=True,
+            encoding="utf-8",
+            errors="replace",
             capture_output=capture,
             env=env,
             check=False,
@@ -1295,11 +1297,23 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     try:
         result = dispatch(parser().parse_args(argv))
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        print_text(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except NotesError as exc:
-        print(f"notesctl: {exc}", file=sys.stderr)
+        print_text(f"notesctl: {exc}", stream=sys.stderr)
         return 2
+
+
+def print_text(value: str, *, stream: Any = None) -> None:
+    target = stream or sys.stdout
+    try:
+        print(value, file=target)
+    except UnicodeEncodeError:
+        binary = getattr(target, "buffer", None)
+        if binary is None:
+            raise
+        binary.write((value + "\n").encode("utf-8"))
+        binary.flush()
 
 
 if __name__ == "__main__":
