@@ -1,0 +1,30 @@
+name: Embedded notes tests
+
+on:
+  push:
+    paths:
+      - "tools/embedded-notes/**"
+      - ".github/workflows/embedded-notes.yml"
+  pull_request:
+    paths:
+      - "tools/embedded-notes/**"
+      - ".github/workflows/embedded-notes.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Run tests
+        run: python -m unittest discover -s tools/embedded-notes/tests
