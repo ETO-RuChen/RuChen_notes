@@ -23,7 +23,7 @@ baseURL是链接的网址，用在需要链接域名的时候
 defaultContentLanguage用中文，最终代码是这样
 ``` toml
 theme = "blowfish" # UNCOMMENT THIS LINE
-baseURL = "https://195481.xyz/" #这是要链接的网址
+baseURL = "https://blog.195481.xyz/" #这是要链接的网址
 defaultContentLanguage = "zh-cn"#默认语言
 ```
 ### languages.zh-cn.toml

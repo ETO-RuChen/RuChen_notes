@@ -3,7 +3,7 @@
 # https://blowfish.page/docs/getting-started/
 
 theme = "blowfish" # UNCOMMENT THIS LINE
-baseURL = "https://195481.xyz/" #这是要链接的网址
+baseURL = "https://blog.195481.xyz/" #这是要链接的网址
 defaultContentLanguage = "zh-cn"#默认语言
 
 # pluralizeListTitles = "true" # hugo function useful for non-english languages, find out more in  https://gohugo.io/getting-started/configuration/#pluralizelisttitles
