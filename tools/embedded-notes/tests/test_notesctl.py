@@ -251,7 +251,7 @@ class NotesctlTests(unittest.TestCase):
                     wrapper = Path(result["wrapper"])
                     self.assertEqual(result["platform"], "windows")
                     self.assertEqual(result["timezone"], "Asia/Shanghai")
-                    self.assertIn(f'--site-root "{site}" --plan-id "weekly"', wrapper.read_text(encoding="utf-8"))
+                    self.assertIn(f'--site-root "{site.resolve()}" --plan-id "weekly"', wrapper.read_text(encoding="utf-8"))
                     create = commands.call_args_list[-1].args[0]
                     self.assertEqual(create[:2], ["schtasks", "/Create"])
                     self.assertEqual(create[create.index("/SC") + 1], frequency)
