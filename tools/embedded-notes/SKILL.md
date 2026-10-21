@@ -10,7 +10,7 @@ Use this skill to turn embedded-systems material into Hugo-compatible Markdown w
 ## Operating contract
 
 - Locate the Hugo site from an explicit path, `EMBEDDED_NOTES_SITE_ROOT`, or upward discovery of `.embedded-notes/config.toml`. Do not assume the Skill directory is the Hugo site.
-- Use the `notesctl.py` located beside this Skill, and require Python 3.11+ on both the local machine and server. The site-specific configuration belongs in the Hugo repository.
+- Use the `notesctl.py` located beside this Skill, and require Python 3.11+ on the local machine. The site-specific configuration belongs in the Hugo repository.
 - Before every create, update, build, publish, or plan run, invoke `scripts/notesctl.py sync --site-root <site>` and stop if synchronization fails.
 - Treat the configured Git remote branch as the cloud content source. When the cloud is newer, use it after the tool has created a backup. Never silently discard local changes.
 - Keep `mode: single` and `mode: batch` separate. A request such as "记录刚才内容" or "生成一篇" is exactly one note. Use batch only when the user explicitly requests multiple notes, a count, or a series.
@@ -39,9 +39,9 @@ Scheduled jobs cannot use implicit historical conversation context. They must us
 
 ## Routing references
 
-- Read [references/installation.md](references/installation.md) when installing or updating the Skill on Windows or Linux.
+- Read [references/installation.md](references/installation.md) when installing or updating the local Skill on Windows.
 - Read [references/request-format.md](references/request-format.md) for single/batch requests and structured drafts.
 - Read [references/sync-policy.md](references/sync-policy.md) when synchronization, divergence, backups, or concurrent writers matter.
 - Read [references/sources.md](references/sources.md) when using files, URLs, or existing notes.
 - Read [references/hugo.md](references/hugo.md) when initializing or adapting a Hugo site.
-- Read [references/scheduling.md](references/scheduling.md) for scheduled plans and platform installation.
+- Read [references/scheduling.md](references/scheduling.md) for scheduled plans and Windows Task Scheduler installation.

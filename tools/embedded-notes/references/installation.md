@@ -1,8 +1,8 @@
 # Installation
 
-The Skill source is portable between Windows and Linux. It requires Python 3.11 or newer, Git, Hugo, and an authenticated Codex CLI for scheduled generation.
+The local Windows Skill requires Python 3.11 or newer, Git, Hugo Extended, and an authenticated Codex CLI for scheduled generation.
 
-Install it on each machine from the Skill source checkout:
+Install it from the Skill source checkout:
 
 ```text
 python scripts/install_skill.py
@@ -16,7 +16,7 @@ python scripts/install_skill.py --update
 
 An update stages the new Skill first, backs up the installed version, and then replaces the installed directory as a unit. Files removed from the source are therefore removed from the installed copy instead of surviving as stale behavior.
 
-The Hugo repository remains separate. Each machine clones the same GitHub repository and keeps `.embedded-notes/config.toml` in that repository. Credentials stay in the machine's Git credential helper, SSH agent, or Codex authentication store.
+The Hugo repository remains separate and keeps `.embedded-notes/config.toml` in that repository. Credentials stay in the local Git credential helper, SSH agent, or Codex authentication store.
 
 When the Skill source is vendored at `tools/embedded-notes` in that repository, a fresh clone can install it without a second machine-specific source location:
 
@@ -28,25 +28,16 @@ The installed copy under `$CODEX_HOME` is runtime state. Make changes in the ver
 
 For scheduled generation, verify `codex --version` and `codex login status` as the scheduler's operating-system user. The interactive shell and scheduler can have different `PATH` values; `notesctl schedule install` resolves the generator and records the current `PATH` only in the ignored local wrapper.
 
-Set `EMBEDDED_NOTES_SITE_ROOT` independently on Windows and Linux, or run Codex from inside the Hugo repository. No machine-specific absolute path is stored in the Skill.
+Set `EMBEDDED_NOTES_SITE_ROOT` locally, or run Codex from inside the Hugo repository. No machine-specific absolute path is stored in the Skill.
 
 For the current site, use `content/embedded/embedded-study`, YAML front matter, `hugo --gc --minify`, the GitHub `main` branch, and Cloudflare Pages as the deployment consumer.
 
-## Windows rollout
+## Local setup
 
 1. Install Python 3.11+, Git, Hugo Extended, and Codex CLI.
-2. Run `python scripts/install_skill.py --update` from the unpacked Skill source.
-3. Clone the Hugo repository and set `EMBEDDED_NOTES_SITE_ROOT` to that checkout.
+2. Clone the Hugo repository and set `EMBEDDED_NOTES_SITE_ROOT` to that checkout.
+3. Run `python tools/embedded-notes/scripts/install_skill.py --update` from that checkout.
 4. Run `codex --version`, `codex login status`, `git fetch origin`, and `hugo --gc --minify` as the user that will own the scheduled task.
 5. Initialize the repository configuration only once, commit `.embedded-notes/config.toml`, `.embedded-notes/.gitignore`, and `.embedded-notes/manifest.json`, then perform a non-publishing single-note test before enabling auto-push.
 
-## Linux server rollout
-
-1. Install Python 3.11+, Git, Hugo Extended, and the same supported Codex CLI generation used on Windows.
-2. Transfer or clone the Skill source, then run `python3 scripts/install_skill.py --update` as the dedicated scheduler user.
-3. Clone the same Hugo Git remote with its submodules. Configure SSH or the Git credential helper for unattended fetch and push; do not put tokens in the Skill or repository.
-4. Run `codex --version`, `codex login status`, `git fetch origin`, and `hugo --gc --minify` as that same user.
-5. Set `EMBEDDED_NOTES_SITE_ROOT`, run `notesctl status`, `notesctl sync`, and one non-publishing single-note request.
-6. Install the plan's systemd user timer. Confirm `systemctl --user status <timer>` and whether `loginctl show-user "$USER" -p Linger` is `yes`. A server expected to run timers after logout needs a persistent user manager; enabling linger may require an administrator.
-
-Do not install either scheduler until the repository is clean, the configured remote branch is correct, and a manual single-note build has succeeded. Keep only one machine responsible for a given scheduled plan unless the plan uses coordinated stable run IDs.
+Install the Windows scheduled task after the configured remote branch is correct and a manual single-note build has succeeded. The local tool continues to sync with GitHub, build Hugo, and push notes; Cloudflare Pages remains the deployment consumer.

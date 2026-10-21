@@ -231,11 +231,44 @@ class NotesctlTests(unittest.TestCase):
             self.assertIn("## Note 0", source["content"])
             self.assertTrue(source["path"].startswith("content/embedded/"))
 
-    def test_linux_schedule_preserves_iana_timezone(self) -> None:
+    def test_windows_schedule_installs_and_removes_local_plan(self) -> None:
+        for schedule, frequency in (("0 20 * * 1", "WEEKLY"), ("30 8 * * *", "DAILY")):
+            with self.subTest(schedule=schedule), tempfile.TemporaryDirectory() as directory:
+                site = Path(directory) / "site with space"
+                notesctl.init_site(type("Args", (), {"site_root": str(site), "content_dir": "content/embedded", "remote": None, "branch": None})())
+                configure_site(site)
+                plan = site / ".embedded-notes" / "plans" / "weekly.toml"
+                plan.write_text(
+                    f'id = "weekly"\nschedule = "{schedule}"\ntimezone = "Asia/Shanghai"\ntopics = ["DMA"]\n',
+                    encoding="utf-8",
+                )
+                completed = subprocess.CompletedProcess([], 0, "China Standard Time\n", "")
+                args = type("Args", (), {"site_root": str(site), "plan_id": "weekly"})()
+                with mock.patch.object(notesctl.sys, "platform", "win32"), mock.patch.object(
+                    notesctl.shutil, "which", return_value="C:\\tools\\codex.exe"
+                ), mock.patch.object(notesctl, "run_command", return_value=completed) as commands:
+                    result = notesctl.schedule_install(args)
+                    wrapper = Path(result["wrapper"])
+                    self.assertEqual(result["platform"], "windows")
+                    self.assertEqual(result["timezone"], "Asia/Shanghai")
+                    self.assertIn(f'--site-root "{site}" --plan-id "weekly"', wrapper.read_text(encoding="utf-8"))
+                    create = commands.call_args_list[-1].args[0]
+                    self.assertEqual(create[:2], ["schtasks", "/Create"])
+                    self.assertEqual(create[create.index("/SC") + 1], frequency)
+                    self.assertEqual(create[create.index("/TR") + 1], str(wrapper))
+                    self.assertEqual(create[create.index("/ST") + 1], "20:00" if frequency == "WEEKLY" else "08:30")
+                    if frequency == "WEEKLY":
+                        self.assertEqual(create[create.index("/D") + 1], "MON")
+                    removed = notesctl.schedule_remove(args)
+                    self.assertEqual(removed["status"], "removed")
+                    self.assertFalse(wrapper.exists())
+                    self.assertEqual(commands.call_args.args[0], ["schtasks", "/Delete", "/F", "/TN", "EmbeddedNotes-weekly"])
+
+    def test_schedule_rejects_non_windows_without_side_effects(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             site = root / "site with space"
-            home = root / "linux home"
+            home = root / "unused home"
             notesctl.init_site(type("Args", (), {"site_root": str(site), "content_dir": "content/embedded", "remote": None, "branch": None})())
             configure_site(site)
             plan = site / ".embedded-notes" / "plans" / "weekly.toml"
@@ -250,15 +283,15 @@ class NotesctlTests(unittest.TestCase):
                 notesctl.Path, "home", return_value=home
             ), mock.patch.object(notesctl.shutil, "which", return_value="/usr/bin/codex"), mock.patch.object(
                 notesctl, "run_command", return_value=completed
-            ):
-                result = notesctl.schedule_install(args)
-
-            timer = home / ".config" / "systemd" / "user" / "embedded-notes-weekly.timer"
-            service = home / ".config" / "systemd" / "user" / "embedded-notes-weekly.service"
-            self.assertIn("OnCalendar=Mon *-*-* 20:00:00 Asia/Shanghai", timer.read_text(encoding="utf-8"))
-            self.assertIn('ExecStart="', service.read_text(encoding="utf-8"))
-            self.assertIn("export PATH=", (site / ".embedded-notes" / "scheduler" / "weekly.sh").read_text(encoding="utf-8"))
-            self.assertEqual(result["timezone"], "Asia/Shanghai")
+            ) as commands:
+                for operation in (notesctl.schedule_install, notesctl.schedule_remove):
+                    with self.subTest(operation=operation.__name__), self.assertRaisesRegex(
+                        notesctl.NotesError, "only supported on Windows"
+                    ):
+                        operation(args)
+                commands.assert_not_called()
+            self.assertFalse(home.exists())
+            self.assertFalse((site / ".embedded-notes" / "scheduler").exists())
 
     def test_windows_schedule_rejects_timezone_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

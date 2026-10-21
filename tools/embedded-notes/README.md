@@ -30,7 +30,7 @@ The generation boundary is strict:
 
 ## Install
 
-After cloning the Hugo repository on Windows or Linux:
+After cloning the Hugo repository on the local Windows machine:
 
 ```text
 python tools/embedded-notes/scripts/install_skill.py --update
@@ -38,8 +38,10 @@ python tools/embedded-notes/scripts/install_skill.py --update
 
 Requirements are Python 3.11+, Git, Hugo Extended, and an authenticated Codex
 CLI when AI generation or scheduling is used. Run Codex inside the Hugo
-repository, pass `--site-root`, or set `EMBEDDED_NOTES_SITE_ROOT` independently
-on each machine.
+repository, pass `--site-root`, or set `EMBEDDED_NOTES_SITE_ROOT` locally.
+
+The local pipeline builds Hugo and pushes the configured GitHub branch.
+Cloudflare Pages continues to build and host the site from that branch.
 
 ## Codex Examples
 
@@ -85,6 +87,6 @@ different non-interactive agent CLI without changing the core pipeline.
 python -m unittest discover -s tools/embedded-notes/tests
 ```
 
-The repository CI runs the same suite on Windows and Ubuntu. See the detailed
+The repository CI runs the same suite on Windows. See the detailed
 request, source, synchronization, Hugo, and scheduling contracts in
 `references/`.

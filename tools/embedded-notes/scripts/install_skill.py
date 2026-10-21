@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install this Skill into a Codex home directory on Windows or Linux."""
+"""Install this Skill into the local Codex home directory."""
 
 from __future__ import annotations
 

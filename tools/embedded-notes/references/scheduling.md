@@ -33,11 +33,11 @@ command = ["codex", "exec", "--ephemeral", "--color", "never", "--sandbox", "wor
 
 This is also the default written by `notesctl init`. Before installing a schedule, run `codex --version` and `codex login status` as the same operating-system user that will own the task. `schedule install` verifies that the configured generator executable is resolvable and captures the current `PATH` in the ignored machine-local wrapper. Keep any environment-specific overrides in configuration rather than in a note or web source. Do not use `--dangerously-bypass-approvals-and-sandbox` unless the entire host is an intentionally isolated disposable environment.
 
-Install or remove the platform scheduler with:
+Install or remove the local Windows scheduled task with:
 
 ```text
 python scripts/notesctl.py schedule install --site-root <hugo-site> --plan-id weekly-embedded-notes
 python scripts/notesctl.py schedule remove --site-root <hugo-site> --plan-id weekly-embedded-notes
 ```
 
-Windows uses Task Scheduler for the supported daily/weekly cron shapes. Because Task Scheduler runs in the Windows system timezone, installation verifies that a declared IANA timezone maps to the active Windows timezone and stops on a mismatch. Linux uses a systemd user timer and writes the declared IANA timezone directly into `OnCalendar`. Omit `timezone` or use `local` only when host-local scheduling is intentional. Unsupported cron expressions are reported instead of being silently approximated.
+Windows uses Task Scheduler for the supported daily/weekly cron shapes. Because Task Scheduler runs in the Windows system timezone, installation verifies that a declared IANA timezone maps to the active Windows timezone and stops on a mismatch. Omit `timezone` or use `local` only when host-local scheduling is intentional. Unsupported cron expressions are reported instead of being silently approximated.

@@ -9,7 +9,6 @@ import hashlib
 import json
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -1039,12 +1038,14 @@ def plan_run(args: argparse.Namespace) -> dict[str, Any]:
     return {"status": "ran", "sync": sync, "plan_id": args.plan_id, "run_id": run_id, "items": results}
 
 
-def schedule_paths(site_root: Path, plan_id: str) -> tuple[Path, Path]:
+def schedule_path(site_root: Path, plan_id: str) -> Path:
     directory = site_root / ".embedded-notes" / "scheduler"
-    return directory / f"{plan_id}.cmd", directory / f"{plan_id}.sh"
+    return directory / f"{plan_id}.cmd"
 
 
 def schedule_install(args: argparse.Namespace) -> dict[str, Any]:
+    if not sys.platform.startswith("win"):
+        fail("scheduled task installation is only supported on Windows")
     site_root = resolve_site_root(args.site_root)
     config = load_config(site_root)
     paths = site_paths(site_root, config)
@@ -1056,112 +1057,55 @@ def schedule_install(args: argparse.Namespace) -> dict[str, Any]:
     generator_executable = shutil.which(generator_command[0])
     if generator_executable is None:
         fail(f"generator executable is not available on PATH: {generator_command[0]}")
-    if sys.platform.startswith("win"):
-        hour, minute = int(fields[1]), int(fields[0])
-        if timezone != "local":
-            expected = WINDOWS_TIMEZONES.get(timezone)
-            if expected is None:
-                fail(f"Windows timezone is not mapped: {timezone}; use local or a supported IANA timezone")
-            active = (run_command(["tzutil", "/g"], site_root).stdout or "").strip()
-            if active.casefold() != expected.casefold():
-                fail(
-                    f"Windows Task Scheduler uses the system timezone {active!r}, but the plan requires "
-                    f"{timezone!r} ({expected!r})"
-                )
-        command_file, _ = schedule_paths(site_root, args.plan_id)
-        command_file.parent.mkdir(parents=True, exist_ok=True)
-        script = Path(__file__).resolve()
-        command_file.write_text(
-            "@echo off\n"
-            + f'@set "PATH={os.environ.get("PATH", "")}"\n'
-            + f'"{sys.executable}" "{script}" plan run --site-root "{site_root}" --plan-id "{args.plan_id}"\n',
-            encoding="utf-8",
-        )
-        task_name = f"EmbeddedNotes-{args.plan_id}"
-        if fields[4] == "*":
-            schtasks = ["schtasks", "/Create", "/F", "/TN", task_name, "/TR", str(command_file), "/SC", "DAILY", "/ST", f"{hour:02d}:{minute:02d}"]
-        else:
-            dow = {"0": "SUN", "1": "MON", "2": "TUE", "3": "WED", "4": "THU", "5": "FRI", "6": "SAT", "7": "SUN"}.get(fields[4])
-            if dow is None:
-                fail("Windows weekly schedule requires a numeric day-of-week")
-            schtasks = ["schtasks", "/Create", "/F", "/TN", task_name, "/TR", str(command_file), "/SC", "WEEKLY", "/D", dow, "/ST", f"{hour:02d}:{minute:02d}"]
-        run_command(schtasks, site_root)
-        return {
-            "status": "installed",
-            "platform": "windows",
-            "task": task_name,
-            "wrapper": str(command_file),
-            "timezone": timezone,
-            "generator": generator_executable,
-        }
-    if fields[0].isdigit() and fields[1].isdigit() and fields[2] == "*" and fields[3] == "*":
-        hour, minute = int(fields[1]), int(fields[0])
-        day = {"0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat", "7": "Sun", "*": "*"}.get(fields[4])
-        if day is None:
-            fail("Linux schedule requires a numeric day-of-week")
-        _, shell_file = schedule_paths(site_root, args.plan_id)
-        shell_file.parent.mkdir(parents=True, exist_ok=True)
-        shell_command = [
-            sys.executable,
-            str(Path(__file__).resolve()),
-            "plan",
-            "run",
-            "--site-root",
-            str(site_root),
-            "--plan-id",
-            args.plan_id,
-        ]
-        shell_file.write_text(
-            "#!/bin/sh\nexport PATH="
-            + shlex.quote(os.environ.get("PATH", ""))
-            + "\nexec "
-            + " ".join(shlex.quote(item) for item in shell_command)
-            + "\n",
-            encoding="utf-8",
-        )
-        shell_file.chmod(0o700)
-        unit_dir = Path.home() / ".config" / "systemd" / "user"
-        unit_dir.mkdir(parents=True, exist_ok=True)
-        service_name = f"embedded-notes-{args.plan_id}"
-        (unit_dir / f"{service_name}.service").write_text(
-            "[Unit]\nDescription=Embedded notes plan\n\n[Service]\nType=oneshot\nExecStart="
-            + json.dumps(str(shell_file), ensure_ascii=False)
-            + "\n",
-            encoding="utf-8",
-        )
-        calendar = f"{day} *-*-* {hour:02d}:{minute:02d}:00" if day != "*" else f"*-*-* {hour:02d}:{minute:02d}:00"
-        if timezone != "local":
-            calendar += f" {timezone}"
-        (unit_dir / f"{service_name}.timer").write_text("[Unit]\nDescription=Embedded notes schedule\n\n[Timer]\nOnCalendar=" + calendar + "\nPersistent=true\nUnit=" + service_name + ".service\n\n[Install]\nWantedBy=default.target\n", encoding="utf-8")
-        run_command(["systemctl", "--user", "daemon-reload"], site_root)
-        run_command(["systemctl", "--user", "enable", "--now", f"{service_name}.timer"], site_root)
-        return {
-            "status": "installed",
-            "platform": "linux",
-            "timer": service_name,
-            "wrapper": str(shell_file),
-            "timezone": timezone,
-            "generator": generator_executable,
-        }
-    fail("unsupported schedule; use a daily or weekly '0 H * * [DOW]' expression")
+    hour, minute = int(fields[1]), int(fields[0])
+    if timezone != "local":
+        expected = WINDOWS_TIMEZONES.get(timezone)
+        if expected is None:
+            fail(f"Windows timezone is not mapped: {timezone}; use local or a supported IANA timezone")
+        active = (run_command(["tzutil", "/g"], site_root).stdout or "").strip()
+        if active.casefold() != expected.casefold():
+            fail(
+                f"Windows Task Scheduler uses the system timezone {active!r}, but the plan requires "
+                f"{timezone!r} ({expected!r})"
+            )
+    command_file = schedule_path(site_root, args.plan_id)
+    command_file.parent.mkdir(parents=True, exist_ok=True)
+    script = Path(__file__).resolve()
+    command_file.write_text(
+        "@echo off\n"
+        + f'@set "PATH={os.environ.get("PATH", "")}"\n'
+        + f'"{sys.executable}" "{script}" plan run --site-root "{site_root}" --plan-id "{args.plan_id}"\n',
+        encoding="utf-8",
+    )
+    task_name = f"EmbeddedNotes-{args.plan_id}"
+    if fields[4] == "*":
+        schtasks = ["schtasks", "/Create", "/F", "/TN", task_name, "/TR", str(command_file), "/SC", "DAILY", "/ST", f"{hour:02d}:{minute:02d}"]
+    else:
+        dow = {"0": "SUN", "1": "MON", "2": "TUE", "3": "WED", "4": "THU", "5": "FRI", "6": "SAT", "7": "SUN"}.get(fields[4])
+        if dow is None:
+            fail("Windows weekly schedule requires a numeric day-of-week")
+        schtasks = ["schtasks", "/Create", "/F", "/TN", task_name, "/TR", str(command_file), "/SC", "WEEKLY", "/D", dow, "/ST", f"{hour:02d}:{minute:02d}"]
+    run_command(schtasks, site_root)
+    return {
+        "status": "installed",
+        "platform": "windows",
+        "task": task_name,
+        "wrapper": str(command_file),
+        "timezone": timezone,
+        "generator": generator_executable,
+    }
 
 
 def schedule_remove(args: argparse.Namespace) -> dict[str, Any]:
+    if not sys.platform.startswith("win"):
+        fail("scheduled task removal is only supported on Windows")
     site_root = resolve_site_root(args.site_root)
     load_config(site_root)
-    if sys.platform.startswith("win"):
-        task_name = f"EmbeddedNotes-{args.plan_id}"
-        run_command(["schtasks", "/Delete", "/F", "/TN", task_name], site_root)
-        command_file, _ = schedule_paths(site_root, args.plan_id)
-        command_file.unlink(missing_ok=True)
-        return {"status": "removed", "platform": "windows", "task": task_name}
-    service_name = f"embedded-notes-{args.plan_id}"
-    run_command(["systemctl", "--user", "disable", "--now", f"{service_name}.timer"], site_root)
-    for suffix in (".service", ".timer"):
-        (Path.home() / ".config" / "systemd" / "user" / f"{service_name}{suffix}").unlink(missing_ok=True)
-    _, shell_file = schedule_paths(site_root, args.plan_id)
-    shell_file.unlink(missing_ok=True)
-    return {"status": "removed", "platform": "linux", "timer": service_name}
+    task_name = f"EmbeddedNotes-{args.plan_id}"
+    run_command(["schtasks", "/Delete", "/F", "/TN", task_name], site_root)
+    command_file = schedule_path(site_root, args.plan_id)
+    command_file.unlink(missing_ok=True)
+    return {"status": "removed", "platform": "windows", "task": task_name}
 
 
 def sync_command(args: argparse.Namespace) -> dict[str, Any]:
